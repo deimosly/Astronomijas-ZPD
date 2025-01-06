@@ -1,0 +1,34 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+from scipy.stats import linregress
+
+df = pd.read_csv('dataset10kc.csv', encoding='latin-1')
+df.columns = df.columns.get_level_values(0)
+print(df.head())
+print(df.columns)
+print(df.info())
+print(df.describe())
+age_column = 'redshift'
+filtered_df = df[['redshift','r_band_mag']].dropna()
+print(filtered_df.head())
+
+# plotting part
+
+plt.scatter(df['redshift'], df['r_band_mag'], alpha=0.5, s=10, color='red') 
+plt.xlabel('Redshift')
+plt.ylabel('r-band Magnitude')
+plt.title('Redshift vs r-band Magnitude')
+plt.show()
+
+# regression part
+
+slope, intercept, r_value, p_value, std_err = linregress(df['redshift'], df['r_band_mag'])
+plt.scatter(df['redshift'], df['r_band_mag'], alpha=0.5, s=10, color='red') 
+plt.plot(df['redshift'], slope*df['redshift']+intercept, color='red')
+plt.xlabel('Redshift')
+plt.ylabel('r-band Magnitude')
+plt.title('Redshift and r-band Magnitude')
+plt.show()
+
+print(f"Slope: {slope}, Intercept: {intercept}")
+print(f"R-squared: {r_value**2}")
