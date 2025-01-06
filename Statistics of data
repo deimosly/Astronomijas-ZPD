@@ -1,0 +1,28 @@
+import sys
+import os
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
+
+file_path = 'Skyserver_SQL1_4_2025 4_25_08 PM.csv'
+df = pd.read_csv(file_path, encoding='latin-1')
+
+M_sun_r = 4.64  
+distance_modulus = lambda z: 5 * np.log10((3e5 * z) / 70) + 25  
+df['absolute_mag_r'] = df['r_band_mag'] - distance_modulus(df['redshift'])  
+df['luminosity_r'] = 10**(-0.4 * (df['absolute_mag_r'] - M_sun_r))  
+data_for_clustering = df[['redshift', 'luminosity_r']]
+scaler = StandardScaler()
+scaled_data = scaler.fit_transform(data_for_clustering)
+kmeans = KMeans(n_clusters=3, random_state=42)
+df['cluster'] = kmeans.fit_predict(scaled_data)
+cluster_stats = df.groupby('cluster')[['redshift', 'luminosity_r']].describe()
+key_metrics = cluster_stats.loc[:, (slice(None), ['mean', 'std', 'min', 'max'])]
+correlations = df.groupby('cluster').apply(lambda group: group[['redshift', 'luminosity_r']].corr().iloc[0, 1], include_groups=False)
+cluster_stats_summary = {
+     "Cluster Statistics": key_metrics,
+    "Correlation (Redshift vs. Luminosity)": correlations
+}
+print(cluster_stats_summary)
