@@ -30,9 +30,9 @@ df['cluster'] = kmeans.fit_predict(scaled_data)
 plt.figure(figsize=(10, 8))
 colors = ['red', 'blue', 'green']
 for cluster in range(3):
-cluster_data = df[df['cluster'] == cluster]
-plt.scatter(cluster_data['redshift'], cluster_data['luminosity_r'], 
-alpha=0.6, s=10, label=f'Cluster {cluster}', color=colors[cluster])
+    cluster_data = df[df['cluster'] == cluster]
+    plt.scatter(cluster_data['redshift'], cluster_data['luminosity_r'], 
+  alpha=0.6, s=10, label=f'Cluster {cluster}', color=colors[cluster])
 
 
 valid_data = df[(df['redshift'] > 0.01) & (df['redshift'] < 0.3)]  # Focus on valid range
