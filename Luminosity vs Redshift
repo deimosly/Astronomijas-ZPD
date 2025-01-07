@@ -9,7 +9,7 @@ H0 = 70
 c = 3e5 
 M_sun_r = 4.67 
 
-df = pd.read_csv('dataset.csv')
+df = pd.read_csv('dataset2_modified.csv')
 df.columns = ['redshift', 'r_band_mag']
 
 redshift_threshold = 0.001
@@ -35,7 +35,7 @@ for cluster in range(3):
   alpha=0.6, s=10, label=f'Cluster {cluster}', color=colors[cluster])
 
 
-valid_data = df[(df['redshift'] > 0.01) & (df['redshift'] < 0.3)]  # Focus on valid range
+valid_data = df[(df['redshift'] > 0.001) & (df['redshift'] < 0.3)]  # Focus on valid range
 z = np.polyfit(valid_data['redshift'], np.log10(valid_data['luminosity_r']), 1)  # Fit log-transformed data
 p = np.poly1d(z)
 
