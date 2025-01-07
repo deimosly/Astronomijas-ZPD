@@ -4,32 +4,49 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 
-file_path = 'Skyserver_SQL1_4_2025 4_25_08 PM.csv'
-df = pd.read_csv(file_path, encoding='latin-1')
 
-M_sun_r = 4.64  
-distance_modulus = lambda z: 5 * np.log10((3e5 * z) / 70) + 25  
-df['absolute_mag_r'] = df['r_band_mag'] - distance_modulus(df['redshift'])  
-df['luminosity_r'] = 10**(-0.4 * (df['absolute_mag_r'] - M_sun_r)) 
+H0 = 70 
+c = 3e5 
+M_sun_r = 4.67 
 
-data_for_clustering = df[['redshift', 'luminosity_r']]
+df = pd.read_csv('dataset.csv')
+df.columns = ['redshift', 'r_band_mag']
+
+redshift_threshold = 0.001
+df = df[df['redshift'] > redshift_threshold]
+
+distance_modulus = lambda z: 5 * np.log10((c * z) / H0 * 1e6) - 5
+df['absolute_mag_r'] = df['r_band_mag'] - distance_modulus(df['redshift'])
+df['luminosity_r'] = 10**(-0.4 * (df['absolute_mag_r'] - M_sun_r))
+
+df['log_luminosity_r'] = np.log10(df['luminosity_r'])
+
+data_for_clustering = df[['redshift', 'log_luminosity_r']]
 scaler = StandardScaler()
 scaled_data = scaler.fit_transform(data_for_clustering)
-
 kmeans = KMeans(n_clusters=3, random_state=42)
 df['cluster'] = kmeans.fit_predict(scaled_data)
 
 plt.figure(figsize=(10, 8))
 colors = ['red', 'blue', 'green']
 for cluster in range(3):
-    cluster_data = df[df['cluster'] == cluster]
-    plt.scatter(cluster_data['redshift'], cluster_data['luminosity_r'], 
-    alpha=0.6, s=10, label=f'Cluster {cluster}', color=colors[cluster])
+cluster_data = df[df['cluster'] == cluster]
+plt.scatter(cluster_data['redshift'], cluster_data['luminosity_r'], 
+alpha=0.6, s=10, label=f'Cluster {cluster}', color=colors[cluster])
 
-plt.yscale('log') 
+
+valid_data = df[(df['redshift'] > 0.01) & (df['redshift'] < 0.3)]  # Focus on valid range
+z = np.polyfit(valid_data['redshift'], np.log10(valid_data['luminosity_r']), 1)  # Fit log-transformed data
+p = np.poly1d(z)
+
+x_trendline = np.linspace(valid_data['redshift'].min(), valid_data['redshift'].max(), 50)
+y_trendline = 10 ** p(x_trendline) 
+plt.plot(x_trendline, y_trendline, "k--", label="Trendline", linewidth=2)
+
+plt.yscale('log')
 plt.xlabel('Redshift')
 plt.ylabel('Luminosity (solar units)')
 plt.title('Clustering of Galaxies by Redshift and Luminosity')
 plt.legend()
-plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+plt.grid(True)
 plt.show()
