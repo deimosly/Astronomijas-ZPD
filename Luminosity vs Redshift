@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 
-
 H0 = 70 
 c = 3e5 
 M_sun_r = 4.67 
@@ -27,16 +26,19 @@ scaled_data = scaler.fit_transform(data_for_clustering)
 kmeans = KMeans(n_clusters=3, random_state=42)
 df['cluster'] = kmeans.fit_predict(scaled_data)
 
+df['luminosity_error'] = 0.5 * df['luminosity_r'] 
+
 plt.figure(figsize=(10, 8))
 colors = ['red', 'blue', 'green']
 for cluster in range(3):
     cluster_data = df[df['cluster'] == cluster]
-    plt.scatter(cluster_data['redshift'], cluster_data['luminosity_r'], 
-  alpha=0.6, s=10, label=f'Cluster {cluster}', color=colors[cluster])
+    plt.errorbar(cluster_data['redshift'], cluster_data['luminosity_r'], 
+                 yerr=cluster_data['luminosity_error'], fmt='o', 
+                 alpha=0.3, label=f'Cluster {cluster}', color=colors[cluster], markersize=4,
+                 capsize=3, elinewidth=0.7)  # Lower alpha for transparency
 
-
-valid_data = df[(df['redshift'] > 0.001) & (df['redshift'] < 0.3)]  # Focus on valid range
-z = np.polyfit(valid_data['redshift'], np.log10(valid_data['luminosity_r']), 1)  # Fit log-transformed data
+valid_data = df[(df['redshift'] > 0.001) & (df['redshift'] < 0.3)]
+z = np.polyfit(valid_data['redshift'], np.log10(valid_data['luminosity_r']), 1) 
 p = np.poly1d(z)
 
 x_trendline = np.linspace(valid_data['redshift'].min(), valid_data['redshift'].max(), 50)
@@ -50,3 +52,4 @@ plt.title('Clustering of Galaxies by Redshift and Luminosity')
 plt.legend()
 plt.grid(True)
 plt.show()
+
