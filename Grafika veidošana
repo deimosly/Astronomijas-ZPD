@@ -1,0 +1,24 @@
+import matplotlib.pyplot as plt
+
+bin_summary = df.groupby('Age_Bin')['SFR'].mean().reset_index()
+bin_summary['Age_Mid'] = bin_summary['Age_Bin'].astype(float)
+
+plt.figure(figsize=(10, 6))
+plt.bar(bin_summary['Age_Mid'], bin_summary['SFR'], width=0.4, color='skyblue', edgecolor='black', alpha=0.7, label='Mean SFR (Binned)')
+
+valid_mask = ~(bin_summary['SFR'].isna())
+x_vals = bin_summary.loc[valid_mask, 'Age_Mid']
+y_vals = bin_summary.loc[valid_mask, 'SFR']
+
+if len(x_vals) > 1:
+    plt.scatter(x_vals, y_vals, color='red', s=50, zorder=4)
+    plt.plot(x_vals, y_vals, 'r-', linewidth=2.5, label='Trend through bins', zorder=3)
+
+plt.xlabel('Galaxy Age (Gyr)')
+plt.ylabel('Mean SFR (M☉/yr)')
+plt.title('Mean SFR vs Galaxy Age (0–5 Gyr)')
+plt.xticks(bin_summary['Age_Mid'], rotation=45)
+plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+plt.legend(loc='upper right')
+plt.tight_layout()
+plt.show()
