@@ -1,0 +1,37 @@
+import pandas as pd
+import numpy as np
+from scipy.stats import pearsonr
+
+# Load dataset
+df = pd.read_csv("dataset_sdss.csv")
+
+# Constants
+age_of_universe = 13.8  # Gyr
+
+# Compute Star Formation Rate (SFR) and Galaxy Age
+df['SFR'] = (10 ** df['stellar_mass']) * (10 ** df['specific_sfr_mean']) / 1e9
+df['Galaxy_Age'] = age_of_universe - df['lookback_time']
+
+# Define merger candidates (galaxies in 4.75 Gyr bin with high SFR & metallicity)
+sfr_median = df['SFR'].median()
+metallicity_median = df['metallicity'].median()
+
+df['Age_Bin'] = pd.cut(df['Galaxy_Age'], bins=np.arange(0, 6, 0.5), labels=np.arange(0.25, 5.75, 0.5))
+merger_candidates = df[(df['Age_Bin'] == 4.75) & (df['SFR'] > sfr_median) & (df['metallicity'] > metallicity_median)]
+
+# Compute statistical summaries
+summary_stats = {
+    "SFR": [df['SFR'].mean(), df['SFR'].std(), df['SFR'].max()],
+    "SFR (Mergers)": [merger_candidates['SFR'].mean(), merger_candidates['SFR'].std(), merger_candidates['SFR'].max()],
+    "Metallicity": [df['metallicity'].mean(), df['metallicity'].median()],
+    "Metallicity (Mergers)": [merger_candidates['metallicity'].mean(), merger_candidates['metallicity'].median()],
+    "Redshift": [df['redshift'].mean(), df['redshift'].std()],
+    "Redshift (Mergers)": [merger_candidates['redshift'].mean(), merger_candidates['redshift'].std()],
+    "Stellar Mass": [df['stellar_mass'].mean(), df['stellar_mass'].median()],
+    "Stellar Mass (Mergers)": [merger_candidates['stellar_mass'].mean(), merger_candidates['stellar_mass'].median()]
+}
+
+# Convert to DataFrame for visualization
+summary_df = pd.DataFrame(summary_stats, index=["Mean", "Std/Median", "Max"])
+import ace_tools as tools
+tools.display_dataframe_to_user(name="Statistical Summary", dataframe=summary_df)
